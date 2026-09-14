@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buku Kas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --cover: #2F4538;
+    --cover-dark: #23352A;
+    --paper: #F7F3E8;
+    --paper-line: #E3DCC9;
+    --ink: #26291F;
+    --ink-soft: #6B6656;
+    --red: #A5402F;
+    --red-bg: #F3E2DD;
+    --green: #3D6B4A;
+    --green-bg: #E1EBE1;
+    --gold: #B8893E;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cover);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:0 0 40px;
+  }
+
+  .cover-strip{
+    background:linear-gradient(180deg, var(--cover) 0%, var(--cover-dark) 100%);
+    padding:28px 20px 36px;
+    text-align:left;
+  }
+  .cover-strip h1{
+    font-family:'Roboto Slab', serif;
+    color:var(--paper);
+    font-size:1.5rem;
+    margin:0 0 4px;
+    letter-spacing:0.01em;
+  }
+  .cover-strip p{
+    color:#C9D3C6;
+    margin:0;
+    font-size:0.85rem;
+  }
+
+  .page{
+    background:var(--paper);
+    margin:-20px 12px 0;
+    border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.18);
+    padding:18px 16px 20px;
+    position:relative;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .sum-card{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:8px;
+    padding:12px 12px;
+  }
+  .sum-card .label{
+    font-size:0.7rem;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .sum-card .value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.05rem;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  .sum-card.masuk .value{color:var(--green);}
+  .sum-card.keluar .value{color:var(--red);}
+  .sum-card.saldo{grid-column:1/3; background:var(--cover); border:none;}
+  .sum-card.saldo .label{color:#C9D3C6;}
+  .sum-card.saldo .value{color:var(--paper); font-size:1.4rem;}
+
+  .subtotals{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .sub-card{
+    background:var(--red-bg);
+    border-radius:7px;
+    padding:9px 8px;
+    text-align:center;
+  }
+  .sub-card .label{
+    font-size:0.65rem;
+    color:var(--ink-soft);
+    margin-bottom:3px;
+  }
+  .sub-card .value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.8rem;
+    font-weight:600;
+    color:var(--red);
+  }
+
+  h2.section-title{
+    font-family:'Roboto Slab', serif;
+    font-size:1rem;
+    margin:0 0 12px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--ink);
+  }
+
+  form{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:22px;
+  }
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:0.75rem;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .type-toggle{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .type-toggle button{
+    border:1.5px solid var(--paper-line);
+    background:#fff;
+    border-radius:6px;
+    padding:9px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .type-toggle button.active.masuk{background:var(--green-bg); border-color:var(--green); color:var(--green);}
+  .type-toggle button.active.keluar{background:var(--red-bg); border-color:var(--red); color:var(--red);}
+
+  select, input[type="text"], input[type="number"], input[type="date"]{
+    width:100%;
+    padding:9px 10px;
+    border:1.5px solid var(--paper-line);
+    border-radius:6px;
+    font-family:'Inter',sans-serif;
+    font-size:0.9rem;
+    background:#fff;
+    color:var(--ink);
+  }
+  input[type="number"]{font-family:'IBM Plex Mono', monospace;}
+
+  .cat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .cat-grid button{
+    border:1.5px solid var(--paper-line);
+    background:#fff;
+    border-radius:6px;
+    padding:8px 6px;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .cat-grid button.active{
+    background:var(--paper);
+    border-color:var(--gold);
+    color:var(--ink);
+    font-weight:600;
+  }
+
+  .submit-btn{
+    width:100%;
+    padding:11px;
+    border:none;
+    border-radius:6px;
+    background:var(--cover);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .submit-btn:active{background:var(--cover-dark);}
+
+  .ledger{
+    border-top:2px solid var(--ink);
+  }
+  .entry{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:11px 2px;
+    border-bottom:1px solid var(--paper-line);
+    gap:10px;
+  }
+  .entry .info{flex:1; min-width:0;}
+  .entry .desc{
+    font-size:0.88rem;
+    font-weight:500;
+    margin-bottom:2px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .entry .meta{
+    font-size:0.72rem;
+    color:var(--ink-soft);
+  }
+  .entry .amt{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:0.85rem;
+    white-space:nowrap;
+  }
+  .entry .amt.keluar{color:var(--red);}
+  .entry .amt.masuk{color:var(--green);}
+  .entry .del{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:1.1rem;
+    cursor:pointer;
+    padding:2px 4px;
+    line-height:1;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:30px 10px;
+    color:var(--ink-soft);
+    font-size:0.85rem;
+  }
+
+  .loading{
+    text-align:center;
+    padding:20px;
+    color:var(--ink-soft);
+    font-size:0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-strip">
+  <h1>Buku Kas</h1>
+  <p>Catatan pemasukan &amp; pengeluaran harian</p>
+</div>
+
+<div class="page">
+
+  <div id="loadingMsg" class="loading">Memuat data...</div>
+
+  <div id="mainContent" style="display:none;">
+
+    <div class="summary-grid">
+      <div class="sum-card masuk">
+        <div class="label">Total Pemasukan</div>
+        <div class="value" id="totalMasuk">Rp 0</div>
+      </div>
+      <div class="sum-card keluar">
+        <div class="label">Total Pengeluaran</div>
+        <div class="value" id="totalKeluar">Rp 0</div>
+      </div>
+      <div class="sum-card saldo">
+        <div class="label">Saldo</div>
+        <div class="value" id="totalSaldo">Rp 0</div>
+      </div>
+    </div>
+
+    <div class="subtotals">
+      <div class="sub-card">
+        <div class="label">Pengiriman</div>
+        <div class="value" id="subKirim">Rp 0</div>
+      </div>
+      <div class="sub-card">
+        <div class="label">Tenaga</div>
+        <div class="value" id="subTenaga">Rp 0</div>
+      </div>
+      <div class="sub-card">
+        <div class="label">Konsumsi</div>
+        <div class="value" id="subKonsumsi">Rp 0</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Tambah Catatan</h2>
+    <form id="entryForm">
+      <div class="field">
+        <label>Jenis</label>
+        <div class="type-toggle">
+          <button type="button" id="btnMasuk" class="masuk">Pemasukan</button>
+          <button type="button" id="btnKeluar" class="keluar active keluar">Pengeluaran</button>
+        </div>
+      </div>
+
+      <div class="field" id="catField">
+        <label>Kategori pengeluaran</label>
+        <div class="cat-grid">
+          <button type="button" data-cat="pengiriman" class="active">Pengiriman</button>
+          <button type="button" data-cat="tenaga">Tenaga</button>
+          <button type="button" data-cat="konsumsi">Konsumsi</button>
+          <button type="button" data-cat="lainnya">Lainnya</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Keterangan</label>
+        <input type="text" id="descInput" placeholder="mis. Ongkir paket ke Bandung" required>
+      </div>
+
+      <div class="field">
+        <label>Jumlah (Rp)</label>
+        <input type="text" inputmode="numeric" id="amountInput" placeholder="0" required>
+      </div>
+
+      <div class="field">
+        <label>Tanggal</label>
+        <input type="date" id="dateInput" required>
+      </div>
+
+      <button type="submit" class="submit-btn">Simpan Catatan</button>
+    </form>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:2px solid var(--ink); padding-bottom:8px;">
+      <h2 class="section-title" style="margin:0; padding:0; border:none;">Riwayat</h2>
+      <button type="button" id="exportBtn" style="background:none; border:1.5px solid var(--ink); border-radius:6px; padding:6px 10px; font-size:0.72rem; font-weight:600; color:var(--ink); cursor:pointer; font-family:'Inter',sans-serif;">Unduh CSV</button>
+    </div>
+    <div class="ledger" id="ledgerList"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">Belum ada catatan. Tambahkan transaksi pertama di atas.</div>
+
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'transactions';
+let transactions = [];
+let currentType = 'keluar'; // 'masuk' or 'keluar'
+let currentCat = 'pengiriman';
+
+const catLabels = {
+  pengiriman: 'Pengiriman',
+  tenaga: 'Tenaga',
+  konsumsi: 'Konsumsi',
+  lainnya: 'Lainnya'
+};
+
+function formatRupiah(n){
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+function formatDate(d){
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+}
+
+async function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    transactions = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    transactions = [];
+  }
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+  render();
+}
+
+async function saveData(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+  }catch(e){
+    console.error('Gagal menyimpan data', e);
+  }
+}
+
+function render(){
+  let totalMasuk = 0, totalKeluar = 0;
+  let subKirim = 0, subTenaga = 0, subKonsumsi = 0;
+
+  transactions.forEach(t => {
+    if(t.type === 'masuk'){
+      totalMasuk += t.amount;
+    } else {
+      totalKeluar += t.amount;
+      if(t.category === 'pengiriman') subKirim += t.amount;
+      else if(t.category === 'tenaga') subTenaga += t.amount;
+      else if(t.category === 'konsumsi') subKonsumsi += t.amount;
+    }
+  });
+
+  document.getElementById('totalMasuk').textContent = formatRupiah(totalMasuk);
+  document.getElementById('totalKeluar').textContent = formatRupiah(totalKeluar);
+  document.getElementById('totalSaldo').textContent = formatRupiah(totalMasuk - totalKeluar);
+  document.getElementById('subKirim').textContent = formatRupiah(subKirim);
+  document.getElementById('subTenaga').textContent = formatRupiah(subTenaga);
+  document.getElementById('subKonsumsi').textContent = formatRupiah(subKonsumsi);
+
+  const list = document.getElementById('ledgerList');
+  const empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+
+  if(transactions.length === 0){
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const sorted = [...transactions].sort((a,b) => (b.date + b.id).localeCompare(a.date + a.id));
+
+  sorted.forEach(t => {
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    const metaText = t.type === 'masuk'
+      ? formatDate(t.date) + ' · Pemasukan'
+      : formatDate(t.date) + ' · ' + catLabels[t.category];
+    entry.innerHTML = `
+      <div class="info">
+        <div class="desc">${escapeHtml(t.desc)}</div>
+        <div class="meta">${metaText}</div>
+      </div>
+      <div class="amt ${t.type}">${t.type === 'masuk' ? '+' : '-'} ${formatRupiah(t.amount)}</div>
+      <button class="del" data-id="${t.id}" aria-label="Hapus">✕</button>
+    `;
+    list.appendChild(entry);
+  });
+
+  list.querySelectorAll('.del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      transactions = transactions.filter(t => t.id !== btn.dataset.id);
+      await saveData();
+      render();
+    });
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.getElementById('btnMasuk').addEventListener('click', () => {
+  currentType = 'masuk';
+  document.getElementById('btnMasuk').classList.add('active');
+  document.getElementById('btnKeluar').classList.remove('active');
+  document.getElementById('catField').style.display = 'none';
+});
+
+document.getElementById('btnKeluar').addEventListener('click', () => {
+  currentType = 'keluar';
+  document.getElementById('btnKeluar').classList.add('active');
+  document.getElementById('btnMasuk').classList.remove('active');
+  document.getElementById('catField').style.display = 'block';
+});
+
+document.querySelectorAll('.cat-grid button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentCat = btn.dataset.cat;
+    document.querySelectorAll('.cat-grid button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+document.getElementById('dateInput').value = new Date().toISOString().slice(0,10);
+
+const amountInput = document.getElementById('amountInput');
+amountInput.addEventListener('input', () => {
+  const raw = amountInput.value.replace(/\D/g, '');
+  amountInput.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+});
+
+function getRawAmount(){
+  return parseFloat(amountInput.value.replace(/\./g, '')) || 0;
+}
+
+document.getElementById('entryForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const desc = document.getElementById('descInput').value.trim();
+  const amount = getRawAmount();
+  const date = document.getElementById('dateInput').value;
+
+  if(!desc || !amount || amount <= 0 || !date) return;
+
+  const newEntry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+    type: currentType,
+    category: currentType === 'keluar' ? currentCat : null,
+    desc,
+    amount,
+    date
+  };
+
+  transactions.push(newEntry);
+  await saveData();
+  render();
+
+  document.getElementById('descInput').value = '';
+  amountInput.value = '';
+});
+
+function exportCSV(){
+  if(transactions.length === 0){
+    alert('Belum ada catatan untuk diunduh.');
+    return;
+  }
+  const sorted = [...transactions].sort((a,b) => (a.date + a.id).localeCompare(b.date + b.id));
+  const header = ['Tanggal','Jenis','Kategori','Keterangan','Jumlah'];
+  const rows = sorted.map(t => [
+    t.date,
+    t.type === 'masuk' ? 'Pemasukan' : 'Pengeluaran',
+    t.type === 'masuk' ? '' : catLabels[t.category],
+    '"' + t.desc.replace(/"/g, '""') + '"',
+    t.amount
+  ].join(','));
+  const csv = '\uFEFF' + [header.join(','), ...rows].join('\r\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'buku-kas-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
+
+loadData();
+</script>
+
+</body>
+</html>
